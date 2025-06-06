@@ -9,7 +9,7 @@ Main objective is to learn more about git/github and microcontrollers/c.
 - Dupont wires
 
 
-## Wiring Progress
+## Hardware wiring
 - [x] Soldered pins to ESP32 C3 Super Mini
 - [ ] Wire OLED to ESP32
 - [ ] Wire momentary button
