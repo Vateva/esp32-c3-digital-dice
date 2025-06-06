@@ -21,3 +21,7 @@ The idea is to print a cubical casing and power the whole set upt with a button 
 ![button wiring](https://github.com/user-attachments/assets/99b9bcc6-91e5-4356-a87c-d4289aa7ec71)
 - [x] Prototype for testing
 ![nobatterynocasing test wiring](https://github.com/user-attachments/assets/b091df99-b107-424f-84ea-bf5e541a1e10)
+
+Now we use testhardware.cpp to test the setup.
+![testhardware](https://github.com/user-attachments/assets/959974c1-7d6c-4c69-ba8f-38003629b8c3)
+
