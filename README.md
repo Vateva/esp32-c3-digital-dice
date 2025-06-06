@@ -4,7 +4,7 @@ Main objective is to learn more about git/github and microcontrollers/c.
 
 ## Hardware Components
 - ESP32 C3 Super Mini
-- 1.3" OLED Display
+- 1.3" Display(SH1106)
 - Momentary Push Button
 - Dupont wires
 
