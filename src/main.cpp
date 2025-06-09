@@ -36,7 +36,6 @@ void setup() {
   // configures gpio wakeup for esp32-c3 deep sleep mode
   esp_deep_sleep_enable_gpio_wakeup(1ULL << BUTTON_PIN,
                                     ESP_GPIO_WAKEUP_GPIO_LOW);
-  esp_sleep_enable_timer_wakeup(getClearDisplayTime());
 
   // seeds random number generator with analog noise for better entropy
   randomSeed(analogRead(A0) + esp_timer_get_time() + esp_random());
@@ -115,6 +114,7 @@ void handleWakeFromButton() {
 
   // If button was released before long press threshold
   if (!longPressHandled) {
+    esp_sleep_enable_timer_wakeup(getClearDisplayTime()*1000);
     rollDice();
   }
 }
