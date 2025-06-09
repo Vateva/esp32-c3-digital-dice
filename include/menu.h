@@ -1,24 +1,23 @@
-/*
- * menu.h - header file for menu system
- */
-
 #ifndef MENU_H
 #define MENU_H
 #include <Arduino.h>
 
 //function prototypes
 void openMenu();
+void nonGlitchyDisplayClear();
 extern void setDisplayBrightness(uint8_t brightness);
-//external history variables from rollDice.cpp
+//history variables
 extern int rollHistory[6][8];
 extern int historyCount;
+
+//flash memory load and save functions
 void saveConfiguration();
 void loadConfiguration();
 
 //getter functions for menu settings used by rollDice.cpp
 int getNumberOfDice();
 int getBrightness();
-int getClearDisplayTime();
+int getTimeToClearDisplay();
 int getStagger();
 int getframeDelay(); //note: matches existing function name in menu.cpp
 

@@ -1,8 +1,3 @@
-/*
- * rollDice.cpp - dice rolling functionality (mixed dice types version)
- */
-
-#include "rollDice.h"
 #include "coin_bitmaps_32.h"
 #include "coin_bitmaps_64.h"
 #include "d10_bitmaps_32.h"
@@ -17,9 +12,10 @@
 #include "d6_bitmaps_64.h"
 #include "d8_bitmaps_32.h"
 #include "d8_bitmaps_64.h"
-#include "menu.h"
 #include <Adafruit_GFX.h>
 #include <Adafruit_SH1106.h>
+#include "rollDice.h"
+#include "menu.h"
 
 // external references to objects from main.cpp
 extern Adafruit_SH1106 display;
@@ -30,14 +26,27 @@ struct DiceInfo {
   int result; // rolled result
 };
 
-int rollHistory[6][8]; // 6 rolls, up to 8 dice each
-int historyCount = 0;  // number of stored rolls
+// function to get frame count per dice type
+int getFramesPerDiceType(int diceType, int result = 0) {
+  switch (diceType) {
+  case 2:
+    // coin animation varies by result
+    if (result == 0) {
+      return 42 + 7; // 42 animation frames + 7 result frames = 49 total
+    } else {
+      return 28 + 7; // 56 animation frames + 7 result frames = 63 total
+    }
+  default:
+    return 18;
+  }
+}
 
 // function to get appropriate bitmap array for dice type and size
 const unsigned char *const *getDiceBitmapArray(int diceType, bool use64x64) {
   if (use64x64) {
     switch (diceType) {
-    // case 2: return coin_64_allArray;
+    case 2:
+      return coin_64_allArray;
     case 4:
       return d4_64_allArray;
     case 6:
@@ -51,7 +60,8 @@ const unsigned char *const *getDiceBitmapArray(int diceType, bool use64x64) {
     }
   } else {
     switch (diceType) {
-    // case 2: return coin_32_allArray;
+    case 2:
+      return coin_32_allArray;
     case 4:
       return d4_32_allArray;
     case 6:
@@ -96,7 +106,7 @@ void rollDice() {
   // adds coins first (treated as 2-sided dice)
   for (int i = 0; i < coinCount && diceIndex < 8; i++) {
     diceArray[diceIndex].type = 2;              // coin = 2-sided
-    diceArray[diceIndex].result = random(1, 3); // 1-2 for heads/tails
+    diceArray[diceIndex].result = random(0, 2); // 0-1 for heads/tails
     diceIndex++;
   }
 
@@ -160,7 +170,7 @@ void rollDice() {
     if (i < totalDice) {
       rollHistory[0][i] = diceArray[i].result; // already in correct order
     } else {
-      rollHistory[0][i] = 0; // clear unused slots
+      rollHistory[0][i] = -1; // clear unused slots
     }
   }
 
@@ -173,9 +183,15 @@ void rollDice() {
   int yPositions[8];
   calculateDicePositions(totalDice, use64x64, xPositions, yPositions);
 
-  // calculates total animation frames needed
-  int framesPerDie = 18; // 11 common + 7 result frames
-  int totalFrames = ((totalDice - 1) * staggerTime) + framesPerDie;
+  // find maximum frame count among all dice being rolled
+  int maxFrames = 0;
+  for (int i = 0; i < totalDice; i++) {
+    int diceFrames =
+        getFramesPerDiceType(diceArray[i].type, diceArray[i].result);
+    if (diceFrames > maxFrames)
+      maxFrames = diceFrames;
+  }
+  int totalFrames = ((totalDice - 1) * staggerTime) + maxFrames;
 
   // main animation loop with configurable stagger timing
   for (int globalFrame = 0; globalFrame < totalFrames; globalFrame++) {
@@ -193,17 +209,36 @@ void rollDice() {
         // this die has started animating
         int currentDieFrame = globalFrame - dieStartFrame;
 
-        if (currentDieFrame < framesPerDie) {
+        // calculate frames for this specific die type
+        // calculate frames for this specific die type
+        int framesForThisDie =
+            getFramesPerDiceType(diceArray[die].type, diceArray[die].result);
+
+        if (currentDieFrame < framesForThisDie) {
           // die is still animating
           int bitmapIndex;
 
-          if (currentDieFrame < 11) {
-            // common animation phase (frames 0-10)
-            bitmapIndex = currentDieFrame;
+          if (diceArray[die].type == 2) {
+            // coin with result-based animation duration
+            int animationFrames = (diceArray[die].result == 0) ? 42 : 28;
+
+            if (currentDieFrame < animationFrames) {
+              // coin is still animating - 28 frames per cycle
+              bitmapIndex = (currentDieFrame) % 28;
+            } else {
+              // coin showing result frames
+              int resultFrame = currentDieFrame - animationFrames;
+              bitmapIndex = 28 + ((diceArray[die].result) * 7) + resultFrame;
+            }
           } else {
-            // result-specific animation phase (frames 11-17)
-            int resultFrame = currentDieFrame - 11;
-            bitmapIndex = 11 + ((diceArray[die].result - 1) * 7) + resultFrame;
+            // other dice use standard animation
+            if (currentDieFrame < 11) {
+              bitmapIndex = currentDieFrame;
+            } else {
+              int resultFrame = currentDieFrame - 11;
+              bitmapIndex =
+                  11 + ((diceArray[die].result - 1) * 7) + resultFrame;
+            }
           }
 
           display.drawBitmap(xPositions[die], yPositions[die],
@@ -211,8 +246,14 @@ void rollDice() {
                              bitmapSize, WHITE);
         } else {
           // die has finished animating - show final result
-          int finalBitmapIndex = 11 + ((diceArray[die].result - 1) * 7) +
-                                 6; // last frame of result
+          int finalBitmapIndex;
+          if (diceArray[die].type == 2) {
+            // coin final result frame
+            finalBitmapIndex = 28 + ((diceArray[die].result) * 7) + 6;
+          } else {
+            // other dice final result frame
+            finalBitmapIndex = 11 + ((diceArray[die].result -1) * 7) + 6;
+          }
           display.drawBitmap(xPositions[die], yPositions[die],
                              currentDieBitmapArray[finalBitmapIndex],
                              bitmapSize, bitmapSize, WHITE);
@@ -229,8 +270,14 @@ void rollDice() {
   for (int die = 0; die < totalDice; die++) {
     const unsigned char *const *currentDieBitmapArray =
         getDiceBitmapArray(diceArray[die].type, use64x64);
-    int finalBitmapIndex =
-        11 + ((diceArray[die].result - 1) * 7) + 6; // last frame of result
+    int finalBitmapIndex;
+    if (diceArray[die].type == 2) {
+      // coin final result frame
+      finalBitmapIndex = 28 + ((diceArray[die].result) * 7) + 6;
+    } else {
+      // other dice final result frame
+      finalBitmapIndex = 11 + ((diceArray[die].result - 1) * 7) + 6;
+    }
     display.drawBitmap(xPositions[die], yPositions[die],
                        currentDieBitmapArray[finalBitmapIndex], bitmapSize,
                        bitmapSize, WHITE);

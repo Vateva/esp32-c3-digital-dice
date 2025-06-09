@@ -1,7 +1,3 @@
-/*
- * rollDice.h - header file for dice rolling functionality
- */
-
 #ifndef ROLLDICE_H
 #define ROLLDICE_H
 
