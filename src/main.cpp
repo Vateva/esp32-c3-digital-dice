@@ -1,15 +1,11 @@
-/*
- * multiple roll deep sleep digital dice
- * allows multiple rolls, sleeps after 5s inactivity
- */
-
-#include "d6_bitmaps.h"
 #include "menu.h"
+#include "rollDice.h"
 #include <Adafruit_GFX.h>
 #include <Adafruit_SH1106.h>
 #include <Wire.h>
 #include <driver/gpio.h>
 #include <esp_sleep.h>
+#include <Fonts/TomThumb.h>
 
 #define SDA_PIN 8
 #define SCL_PIN 9
@@ -18,7 +14,6 @@ extern const int BUTTON_PIN =
 #define DEBOUNCE_DELAY_MS 250
 #define TIME_TO_CLEAR_DISPLAY 3500000
 #define LONG_PRESS_MS 1000 // milliseconds to consider a long press
-#define FRAME_DELAY 0
 
 Adafruit_SH1106 display(-1);
 
@@ -33,6 +28,8 @@ void showWelcomeMessage();
 void goToDeepSleep();
 void handleWakeFromButton();
 void openMenu();
+void nonGlitchyDisplayClear();
+void turnDisplayOff();
 
 void setup() {
   // configures button with pullup resistor enabled
@@ -43,13 +40,16 @@ void setup() {
                                     ESP_GPIO_WAKEUP_GPIO_LOW);
   esp_sleep_enable_timer_wakeup(TIME_TO_CLEAR_DISPLAY);
 
-  // initializes i2c and oled display
-  Wire.begin(SDA_PIN, SCL_PIN);
-  display.begin(SH1106_SWITCHCAPVCC, 0x3C);
-
-  // seeds random number generator with boot time
   // seeds random number generator with analog noise for better entropy
   randomSeed(analogRead(A0) + esp_timer_get_time() + esp_random());
+
+  //loads configuration from flash memory
+  loadConfiguration();
+  
+  // initializes cleared display
+  Wire.begin(SDA_PIN, SCL_PIN);
+  nonGlitchyDisplayClear();
+  display.begin(SH1106_SWITCHCAPVCC, 0x3C);
 
   // check wake up reason
   esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
@@ -64,11 +64,11 @@ void setup() {
     goToDeepSleep();
 
   } else if (wakeup_reason == ESP_SLEEP_WAKEUP_TIMER) {
-    // woke up from timer - clear display and go back to sleep
-    display.clearDisplay();
-    display.display();
-    delay(10); // ensure i2c transaction completes before sleep
+
+    turnDisplayOff();
+    nonGlitchyDisplayClear();
     goToDeepSleep();
+
   } else {
     // device powered on normally or reset
 
@@ -76,112 +76,26 @@ void setup() {
     esp_sleep_enable_timer_wakeup(currentConfig.sleepTime * 1000000);*/
 
     showWelcomeMessage();
-    delay(2000);
     goToDeepSleep();
   }
 }
 
 void loop() {}
 
-void rollDice() {
-  // generates random number between 1 and 6 inclusive
-  int diceResult = random(1, 7);
-  // plays animation common to all results
-  for (int i = 0; i < 11; i++) {
-    display.clearDisplay();
-    display.drawBitmap(30, 0, bitmap_allArray[i], 64, 64,
-                       WHITE); // centered at x=30
-    display.display();
-    delay(FRAME_DELAY); // 50ms per frame
-  }
-  // plays the corresponding animation
-  switch (diceResult) {
-  case 1:
-    for (int i = 11; i < 18; i++) {
-      display.clearDisplay();
-      display.drawBitmap(30, 0, bitmap_allArray[i], 64, 64,
-                         WHITE); // centered at x=30
-      display.display();
-      delay(FRAME_DELAY); // 50ms per frame
-    }
-    break;
-
-  case 2:
-    for (int i = 18; i < 25; i++) {
-      display.clearDisplay();
-      display.drawBitmap(30, 0, bitmap_allArray[i], 64, 64,
-                         WHITE); // centered at x=30
-      display.display();
-      delay(FRAME_DELAY); // 50ms per frame
-    }
-    break;
-
-  case 3:
-    for (int i = 25; i < 32; i++) {
-      display.clearDisplay();
-      display.drawBitmap(30, 0, bitmap_allArray[i], 64, 64,
-                         WHITE); // centered at x=30
-      display.display();
-      delay(FRAME_DELAY); // 50ms per frame
-    }
-    break;
-
-  case 4:
-    for (int i = 32; i < 39; i++) {
-      display.clearDisplay();
-      display.drawBitmap(30, 0, bitmap_allArray[i], 64, 64,
-                         WHITE); // centered at x=30
-      display.display();
-      delay(FRAME_DELAY); // 50ms per frame
-    }
-    break;
-
-  case 5:
-    for (int i = 39; i < 46; i++) {
-      display.clearDisplay();
-      display.drawBitmap(30, 0, bitmap_allArray[i], 64, 64,
-                         WHITE); // centered at x=30
-      display.display();
-      delay(FRAME_DELAY); // 50ms per frame
-    }
-    break;
-
-  case 6:
-    for (int i = 46; i < 53; i++) {
-      display.clearDisplay();
-      display.drawBitmap(30, 0, bitmap_allArray[i], 64, 64,
-                         WHITE); // centered at x=30
-      display.display();
-      delay(FRAME_DELAY); // 50ms per frame
-    }
-    break;
-  default:
-    break;
-  }
-
-  // updates physical display with new content
-  display.display();
-
-}
-
 void showWelcomeMessage() {
   // clears display and shows initial instructions
   display.clearDisplay();
   display.setTextColor(WHITE);
-  display.setTextSize(1);
+  display.setFont(&TomThumb);
   display.setCursor(0, 0);
   display.println("press to roll dice");
   display.setCursor(0, 20);
-  display.println("sleeps after 5s");
+  display.println("D20:XX,D20:XX,D20:XX,D20:XX,D20:XX,D20:XX,D20:XX,D20:XX");
   display.setCursor(0, 40);
   display.display();
 }
 
 void goToDeepSleep() {
-
-  /* //clears display to save power during sleep
-   display.clearDisplay();
-   display.display();*/
 
   // enters deep sleep mode - usb disconnects here
   esp_deep_sleep_start();
@@ -189,30 +103,50 @@ void goToDeepSleep() {
 void handleWakeFromButton() {
   unsigned long buttonHoldStart = millis();
   bool longPressHandled = false;
-  
+
   // Check hold duration while button is still pressed
   while (digitalRead(BUTTON_PIN) == LOW) {
     unsigned long holdDuration = millis() - buttonHoldStart;
-    
+
     // Open menu immediately when threshold reached
     if (holdDuration >= LONG_PRESS_MS && !longPressHandled) {
       openMenu();
       longPressHandled = true;
-      
-      // Wait for button release before sleeping
-      while (digitalRead(BUTTON_PIN) == LOW) {
-        delay(10);
-      }
-      break;
     }
-    delay(10);
   }
-  
+
   // If button was released before long press threshold
   if (!longPressHandled) {
     rollDice();
   }
-  
-  delay(50);
-  goToDeepSleep();
+}
+// clears screen via I2C to avoid flash/glitch while clearing
+void nonGlitchyDisplayClear() {
+
+  // clear all display memory by sending black pixels directly
+  for (int page = 0; page < 8; page++) {
+    // set page address (0-7 for 64 pixel height ÷ 8)
+    Wire.beginTransmission(0x3C);
+    Wire.write(0x00);        // command mode
+    Wire.write(0xB0 + page); // set page address
+    Wire.write(0x02);        // set column start low (sh1106 offset)
+    Wire.write(0x10);        // set column start high
+    Wire.endTransmission();
+
+    // send 128 bytes of black pixels (0x00) for this page
+    Wire.beginTransmission(0x3C);
+    Wire.write(0x40); // data mode
+    for (int col = 0; col < 128; col++) {
+      Wire.write(0x00); // black pixel data
+    }
+    Wire.endTransmission();
+  }
+}
+// turns the screen on
+void turnDisplayOff() {
+  // turns on display using direct i2c command
+  Wire.beginTransmission(0x3C);
+  Wire.write(0x00); // command mode
+  Wire.write(0xAE); // display OFF command
+  Wire.endTransmission();
 }
