@@ -30,7 +30,7 @@ struct DiceInfo {
   int result; // rolled result
 };
 
-int rollHistory[8][8]; // 8 rolls, up to 8 dice each
+int rollHistory[6][8]; // 6 rolls, up to 8 dice each
 int historyCount = 0;  // number of stored rolls
 
 // function to get appropriate bitmap array for dice type and size
@@ -144,7 +144,7 @@ void rollDice() {
 
   // store results in roll history (already ordered by dice size)
   // add to roll history
-  if (historyCount < 8) {
+  if (historyCount < 6) {
     historyCount++;
   }
 
@@ -158,7 +158,7 @@ void rollDice() {
   // store new roll at index 0 (in dice size order)
   for (int i = 0; i < 8; i++) {
     if (i < totalDice) {
-      rollHistory[0][i] = diceArray[i].result; // already in correct order!
+      rollHistory[0][i] = diceArray[i].result; // already in correct order
     } else {
       rollHistory[0][i] = 0; // clear unused slots
     }

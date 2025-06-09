@@ -12,7 +12,7 @@
 extern Adafruit_SH1106 display;
 extern unsigned long lastButtonPress;
 extern bool buttonPressed;
-extern int rollHistory[8][8];
+extern int rollHistory[6][8];
 extern int historyCount;
 
 // preferences object for flash storage
