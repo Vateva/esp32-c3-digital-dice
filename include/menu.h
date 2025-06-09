@@ -9,6 +9,9 @@
 //function prototypes
 void openMenu();
 extern void setDisplayBrightness(uint8_t brightness);
+//external history variables from rollDice.cpp
+extern int rollHistory[8][8];
+extern int historyCount;
 void saveConfiguration();
 void loadConfiguration();
 

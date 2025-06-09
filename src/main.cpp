@@ -11,9 +11,7 @@
 #define SCL_PIN 9
 extern const int BUTTON_PIN =
     3; // gpio3 - only gpio 0-5 can wake from deep sleep
-#define DEBOUNCE_DELAY_MS 250
-#define TIME_TO_CLEAR_DISPLAY 3500000
-#define LONG_PRESS_MS 1000 // milliseconds to consider a long press
+#define LONG_PRESS_MS 500 // milliseconds to consider a long press
 
 Adafruit_SH1106 display(-1);
 
@@ -38,7 +36,7 @@ void setup() {
   // configures gpio wakeup for esp32-c3 deep sleep mode
   esp_deep_sleep_enable_gpio_wakeup(1ULL << BUTTON_PIN,
                                     ESP_GPIO_WAKEUP_GPIO_LOW);
-  esp_sleep_enable_timer_wakeup(TIME_TO_CLEAR_DISPLAY);
+  esp_sleep_enable_timer_wakeup(getClearDisplayTime());
 
   // seeds random number generator with analog noise for better entropy
   randomSeed(analogRead(A0) + esp_timer_get_time() + esp_random());
