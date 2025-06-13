@@ -1,10 +1,10 @@
+#include "menu.h"
+#include "config.h"
 #include <Adafruit_GFX.h>
 #include <Adafruit_SH1106.h>
 #include <Fonts/TomThumb.h>
 #include <Preferences.h>
 #include <Wire.h>
-#include "config.h"
-#include "menu.h"
 
 //external references to main.cpp objects
 extern Adafruit_SH1106 display;
@@ -15,7 +15,6 @@ int historyCount;
 
 //preferences object for flash storage
 Preferences preferences;
-
 
 int currentMenu = MENU_MAIN;
 
@@ -86,8 +85,6 @@ void openMenu() {
 
   //saves configuration to flash memory before exiting
   saveConfiguration();
-
-  
 }
 
 void drawMenu() {
@@ -107,7 +104,7 @@ void drawMenu() {
     //draws each menu item with selection indicator
     for (int i = 0; i < MAIN_MENU_ITEMS; i++) {
       display.setCursor(0,
-                        17 + (i * 13)); //positions each item 12 pixels apart
+                        15 + (i * 13)); //positions each item 12 pixels apart
 
       //draws selection indicator for current item
       if (i == currentSelection) {
@@ -301,8 +298,7 @@ void handleButtonPress() {
 
   //detects long press while button is held
   if (buttonPressed && currentButtonState) {
-    if (currentTime - buttonPressStart >= LONG_PRESS_MENU_SELECTION
-     &&
+    if (currentTime - buttonPressStart >= LONG_PRESS_MENU_SELECTION &&
         !longPressDetected) {
       longPressDetected = true;
       executeMenuAction();
@@ -591,22 +587,24 @@ void loadConfiguration() {
 }
 
 void nonGlitchyDisplayClear() {
-  for (int page = 0; page < 8; page++) {
-    // Set to column 0 (full memory)
+  for (uint8_t page = 0; page < 8; page++) {
+    // Set GDDRAM page address
     Wire.beginTransmission(0x3C);
-    Wire.write(0x00);
-    Wire.write(0xB0 + page); // Page address
-    Wire.write(0x00);        // Column low nibble
-    Wire.write(0x10);        // Column high nibble (addr = 0x10)
+    Wire.write(0x00);              // Command mode
+    Wire.write(0xB0 + page);       // Set page address
+    Wire.write(0x02 & 0x0F);       // Lower column address bits
+    Wire.write((0x02 >> 4) | 0x10); // Higher column address bits
     Wire.endTransmission();
 
-    // Write 132 bytes (not just 128)
+    // Write 128 bytes of 0x00 to clear visible screen
     Wire.beginTransmission(0x3C);
-    Wire.write(0x40); // data mode
-    for (int col = 0; col < 132; col++) {
-      Wire.write(0x00);
+    Wire.write(0x40);              // Data mode
+    for (int i = 0; i < 128; i++) {
+      Wire.write(0x00);            // Clear pixel
+      
     }
     Wire.endTransmission();
+    
   }
+delay(10);
 }
-
