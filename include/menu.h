@@ -1,6 +1,27 @@
 #ifndef MENU_H
 #define MENU_H
 #include <Arduino.h>
+#include <esp_sleep.h>
+
+//rtc variables struct
+typedef struct {
+    bool isValid;
+    int coinCount;
+    int d4Count;
+    int d6Count;
+    int d8Count;
+    int d10Count;
+    int d12Count;
+    int d20Count;
+    int brightness;
+    int timeToClearDisplay;
+    int stagger;
+    int frameDelay;
+    int rollHistory[6][8];
+    int historyCount;
+} RtcConfig;
+
+extern RTC_DATA_ATTR RtcConfig rtcConfig;
 
 //function prototypes
 void openMenu();
