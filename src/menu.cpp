@@ -586,25 +586,30 @@ void loadConfiguration() {
     frameDelay = 0;
 }
 
+//custom direct I2C clearing function to avoid flash from display.clearDisplay
 void nonGlitchyDisplayClear() {
   for (uint8_t page = 0; page < 8; page++) {
-    // Set GDDRAM page address
+    //set page and column address
     Wire.beginTransmission(0x3C);
-    Wire.write(0x00);              // Command mode
-    Wire.write(0xB0 + page);       // Set page address
-    Wire.write(0x02 & 0x0F);       // Lower column address bits
-    Wire.write((0x02 >> 4) | 0x10); // Higher column address bits
+    Wire.write(0x00);              //command mode
+    Wire.write(0xB0 + page);       //set page address
+    Wire.write(0x02);              //lower column address (start at 2)
+    Wire.write(0x10);              //higher column address  
     Wire.endTransmission();
 
-    // Write 128 bytes of 0x00 to clear visible screen
-    Wire.beginTransmission(0x3C);
-    Wire.write(0x40);              // Data mode
-    for (int i = 0; i < 128; i++) {
-      Wire.write(0x00);            // Clear pixel
+    //write the 132 columns in small chunks to avoid I2C buffer overflow
+    //that was producing small glitch while clearing
+    for (int startCol = 0; startCol < 132; startCol += 16) {
+      Wire.beginTransmission(0x3C);
+      Wire.write(0x40);            //data mode
       
+      int endCol = min(startCol + 16, 132);
+      for (int col = startCol; col < endCol; col++) {
+        Wire.write(0x00);          //clear pixel(write black to it)
+      }
+      
+      Wire.endTransmission();
     }
-    Wire.endTransmission();
-    
   }
-delay(10);
+  delay(10);
 }

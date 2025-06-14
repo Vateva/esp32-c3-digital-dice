@@ -50,10 +50,6 @@ void setup() {
  
   nonGlitchyDisplayClear();
   display.begin(SH1106_SWITCHCAPVCC, 0x3C);
-  
-  display.clearDisplay();
-  display.display();
-  delay(50);
  
 
 
