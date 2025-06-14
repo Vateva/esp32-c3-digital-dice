@@ -1,5 +1,6 @@
 #include "menu.h"
 #include "config.h"
+#include "utils.h"
 #include <Adafruit_GFX.h>
 #include <Adafruit_SH1106.h>
 #include <Fonts/TomThumb.h>
@@ -19,28 +20,20 @@ int historyCount;
 // preferences object for flash storage
 Preferences preferences;
 
-int currentMenu = MENU_MAIN;
-
-int currentSelection = 0;
-
 // main menu option labels
 const char *mainMenuItems[MAIN_MENU_ITEMS] = {"Dice", "Roll history",
                                               "Configuration", "Exit"};
-// dice menu option labels - updated with coin and individual counts
-const char *diceMenuItems[DICE_MENU_ITEMS] = {"Coin", "D4",  "D6",  "D20",
-                                              "D8",   "D10", "D12", "Back"};
+// dice menu option labels
+const char *diceMenuItems[DICE_MENU_ITEMS] = {"Coin", "D4",  "D6",  "D8",
+                                              "D10",  "D12", "D20", "Back"};
 // config menu option labels
 const char *configMenuItems[CONFIG_MENU_ITEMS] = {
     "Brightness", "Time to clear", "Stagger time", "Frame delay(ms)", "Back"};
 
-// individual dice counters - replaces single numberOfDice variable
-  int  coinCount = COIN_COUNT_DEFAULT;
-  int  d4Count = D4_COUNT_DEFAULT;
-  int  d6Count = D6_COUNT_DEFAULT;
-  int  d8Count = D8_COUNT_DEFAULT;
-  int  d10Count = D10_COUNT_DEFAULT;
-  int  d12Count = D12_COUNT_DEFAULT;
-  int d20Count = D20_COUNT_DEFAULT;
+// dice count array
+int diceCount[7] = {COIN_COUNT_DEFAULT, D4_COUNT_DEFAULT,  D6_COUNT_DEFAULT,
+                    D8_COUNT_DEFAULT,   D10_COUNT_DEFAULT, D12_COUNT_DEFAULT,
+                    D20_COUNT_DEFAULT}; // coin, d4, d6, d8, d10, d12, d20
 
 // default configuration values
 int brightness = BRIGHTNESS_DEFAULT;
@@ -51,7 +44,11 @@ int frameDelay = FRAME_DELAY_DEFAULT;
 // timing variables for button handling
 unsigned long buttonPressStart = 0;
 bool longPressDetected = false;
+// menu navigation variables
+int currentMenu = MENU_MAIN;
+int currentSelection = 0;
 bool menuExitRequested = false;
+bool changedConfig = false;
 
 // function prototypes
 void drawMenu();
@@ -60,7 +57,6 @@ bool isButtonPressed();
 void executeMenuAction();
 int getTotalDiceCount();
 int getMaxAllowedCount(int currentTypeCount);
-int *getDiceCountPointer(int menuIndex);
 void saveConfiguration();
 void loadConfiguration();
 
@@ -76,6 +72,7 @@ void openMenu() {
   lastButtonPress = millis();
   buttonPressStart = 0;
   menuExitRequested = false;
+  changedConfig = false;
 
   // draws initial menu
   drawMenu();
@@ -86,8 +83,10 @@ void openMenu() {
     delay(10); // small delay to prevent excessive cpu usage
   }
 
-  // saves configuration to flash memory before exiting
-  saveConfiguration();
+  // saves configuration to flash memorybefore exiting if something changed
+  if (changedConfig) {
+    saveConfiguration();
+  }
 }
 
 void drawMenu() {
@@ -106,7 +105,7 @@ void drawMenu() {
 
     // draws each menu item with selection indicator
     for (int i = 0; i < MAIN_MENU_ITEMS; i++) {
-      display.setCursor(0,
+      display.setCursor(2,
                         15 + (i * 13)); // positions each item 12 pixels apart
 
       // draws selection indicator for current item
@@ -148,7 +147,7 @@ void drawMenu() {
         } else {
           display.print(" n-");
           display.print(i + 1);
-          display.print("  : ");
+          display.print(" : ");
         }
 
         // gets the roll to display (newest first)
@@ -176,7 +175,7 @@ void drawMenu() {
     }
 
     // draws back button with selection indicator
-    display.setCursor(0, 56);
+    display.setCursor(2, 56);
     if (currentSelection == 0) {
       display.print(">");
     } else {
@@ -192,10 +191,10 @@ void drawMenu() {
 
     // draws dice menu items in two columns with counts
     for (int i = 0; i < DICE_MENU_ITEMS; i++) {
-      int col = i / 4; // 0 for left column, 1 for right column
-      int row = i % 4; // row within column (0-3)
+      int col = (i / 4); // 0 for left column, 1 for right column
+      int row = i % 4;   // row within column (0-3)
 
-      display.setCursor(col * 64,
+      display.setCursor(2+(col * 64),
                         17 + (row * 13)); // 64 pixels apart for columns
 
       // draws selection indicator for current item
@@ -213,25 +212,25 @@ void drawMenu() {
         display.print(":");
         switch (i) {
         case 0: // coin
-          display.print(coinCount);
+          display.print(diceCount[0]);
           break;
         case 1: // d4
-          display.print(d4Count);
+          display.print(diceCount[1]);
           break;
         case 2: // d6
-          display.print(d6Count);
+          display.print(diceCount[2]);
           break;
-        case 3: // d20
-          display.print(d20Count);
+        case 3: // d8
+          display.print(diceCount[3]);
           break;
-        case 4: // d8
-          display.print(d8Count);
+        case 4: // d10
+          display.print(diceCount[4]);
           break;
-        case 5: // d10
-          display.print(d10Count);
+        case 5: // d12
+          display.print(diceCount[5]);
           break;
-        case 6: // d12
-          display.print(d12Count);
+        case 6: // d20
+          display.print(diceCount[6]);
           break;
         }
       }
@@ -245,7 +244,7 @@ void drawMenu() {
 
     // draws config menu items with selection indicator
     for (int i = 0; i < CONFIG_MENU_ITEMS; i++) {
-      display.setCursor(0, 16 + (i * 10)); // positions each item
+      display.setCursor(2, 16 + (i * 10)); // positions each item
 
       // draws selection indicator for current item
       if (i == currentSelection) {
@@ -266,7 +265,7 @@ void drawMenu() {
           display.print("%");
           break;
         case 1: // clear display time
-          display.print(timeToClearDisplay / 1000);
+          display.print(timeToClearDisplay / 1000.0, 1);
           display.print("s");
           break;
         case 2: // animation frames
@@ -335,49 +334,16 @@ void handleButtonPress() {
   }
 }
 
-// function to set display brightness/contrast
-void setDisplayBrightness(uint8_t brightness) {
-  // sh1106 uses contrast command for brightness
-  // send command sequence to set contrast
-  Wire.beginTransmission(0x3C); // display i2c address
-  Wire.write(0x00);             // command mode
-  Wire.write(0x81);             // set contrast command
-  Wire.write(brightness);       // contrast value 0-255
-  Wire.endTransmission();
-}
-
 // calculates total number of dice across all types
 int getTotalDiceCount() {
-  return coinCount + d4Count + d6Count + d8Count + d10Count + d12Count +
-         d20Count;
+  return diceCount[0] + diceCount[1] + diceCount[2] + diceCount[3] +
+         diceCount[4] + diceCount[5] + diceCount[6];
 }
 
 // calculates maximum allowed count for cycling a specific dice type
 int getMaxAllowedCount(int currentTypeCount) {
   int totalOthers = getTotalDiceCount() - currentTypeCount;
   return 8 - totalOthers;
-}
-
-// returns pointer to the count variable for a given menu index
-int *getDiceCountPointer(int menuIndex) {
-  switch (menuIndex) {
-  case 0:
-    return &coinCount;
-  case 1:
-    return &d4Count;
-  case 2:
-    return &d6Count;
-  case 3:
-    return &d20Count;
-  case 4:
-    return &d8Count;
-  case 5:
-    return &d10Count;
-  case 6:
-    return &d12Count;
-  default:
-    return nullptr;
-  }
 }
 
 void executeMenuAction() {
@@ -407,17 +373,12 @@ void executeMenuAction() {
 
   case MENU_DICE:
     // handles dice count cycling for all dice types
-    if (currentSelection < DICE_MENU_ITEMS - 1) { // not "Back"
-      int *countPtr = getDiceCountPointer(currentSelection);
-      if (countPtr != nullptr) {
-        int currentCount = *countPtr;
-        int maxAllowed = getMaxAllowedCount(currentCount);
-
-        // cycle count from 0 to maxAllowed
-        *countPtr = (currentCount + 1) % (maxAllowed + 1);
-
-        drawMenu();
-      }
+    if (currentSelection < DICE_MENU_ITEMS - 1) {
+      int maxAllowed = getMaxAllowedCount(diceCount[currentSelection]);
+      diceCount[currentSelection] =
+          (diceCount[currentSelection] + 1) % (maxAllowed + 1);
+      changedConfig = true;
+      drawMenu();
     } else { // back option
       currentMenu = MENU_MAIN;
       currentSelection = 0;
@@ -443,21 +404,25 @@ void executeMenuAction() {
       }
       // apply brightness to display
       setDisplayBrightness(brightness);
+      changedConfig = true; // flag to save to flash
       drawMenu();
       break;
     case 1: // time to clear
       // cycle through times (s)
       timeToClearDisplay =
           (timeToClearDisplay >= 5000) ? 1000 : timeToClearDisplay + 500;
+      changedConfig = true; // flag to save to flash
       drawMenu();
       break;
     case 2: // stagger time
       // cycle through stagger time
       stagger = (stagger == 5) ? 0 : stagger + 1;
+      changedConfig = true; // flag to save to flash
       drawMenu();
       break;
     case 3: // frame delay(ms)
       frameDelay = (frameDelay == 75) ? 0 : frameDelay + 5;
+      changedConfig = true; // flag to save to flash
       drawMenu();
       break;
     case 4: // back
@@ -477,7 +442,6 @@ bool isButtonPressed() {
 }
 
 // functions to access menu settings from main.cpp and rolldice.cpp
-int getNumberOfDice() { return getTotalDiceCount(); }
 
 int getBrightness() { return brightness; }
 
@@ -488,26 +452,26 @@ int getStagger() { return stagger; }
 int getframeDelay() { return frameDelay; }
 
 // new getter functions for individual dice counts
-int getCoinCount() { return coinCount; }
-int getD4Count() { return d4Count; }
-int getD6Count() { return d6Count; }
-int getD8Count() { return d8Count; }
-int getD10Count() { return d10Count; }
-int getD12Count() { return d12Count; }
-int getD20Count() { return d20Count; }
+int getCoinCount() { return diceCount[0]; }
+int getD4Count() { return diceCount[1]; }
+int getD6Count() { return diceCount[2]; }
+int getD8Count() { return diceCount[3]; }
+int getD10Count() { return diceCount[4]; }
+int getD12Count() { return diceCount[5]; }
+int getD20Count() { return diceCount[6]; }
 
 // saves all configuration
 void saveConfiguration() {
   preferences.begin("diceConfig", false); // false = read/write mode
 
   // save dice counts
-  preferences.putInt("coinCount", coinCount);
-  preferences.putInt("d4Count", d4Count);
-  preferences.putInt("d6Count", d6Count);
-  preferences.putInt("d8Count", d8Count);
-  preferences.putInt("d10Count", d10Count);
-  preferences.putInt("d12Count", d12Count);
-  preferences.putInt("d20Count", d20Count);
+  preferences.putInt("coinCount", diceCount[0]);
+  preferences.putInt("d4Count", diceCount[1]);
+  preferences.putInt("d6Count", diceCount[2]);
+  preferences.putInt("d8Count", diceCount[3]);
+  preferences.putInt("d10Count", diceCount[4]);
+  preferences.putInt("d12Count", diceCount[5]);
+  preferences.putInt("d20Count", diceCount[6]);
 
   // save configuration settings
   preferences.putInt("brightness", brightness);
@@ -520,13 +484,13 @@ void saveConfiguration() {
   preferences.putInt("historyCount", historyCount);
 
   // update rtc memory with new values
-  rtcConfig.coinCount = coinCount;
-  rtcConfig.d4Count = d4Count;
-  rtcConfig.d6Count = d6Count;
-  rtcConfig.d8Count = d8Count;
-  rtcConfig.d10Count = d10Count;
-  rtcConfig.d12Count = d12Count;
-  rtcConfig.d20Count = d20Count;
+  rtcConfig.coinCount = diceCount[0];
+  rtcConfig.d4Count = diceCount[1];
+  rtcConfig.d6Count = diceCount[2];
+  rtcConfig.d8Count = diceCount[3];
+  rtcConfig.d10Count = diceCount[4];
+  rtcConfig.d12Count = diceCount[5];
+  rtcConfig.d20Count = diceCount[6];
   rtcConfig.brightness = brightness;
   rtcConfig.timeToClearDisplay = timeToClearDisplay;
   rtcConfig.stagger = stagger;
@@ -545,63 +509,63 @@ void saveConfiguration() {
   preferences.end();
 }
 
-//loads all configuration from flash memory
+// loads all configuration from flash memory
 void loadConfiguration() {
-  //check if this is cold boot or deep sleep wake
+  // check if this is cold boot or deep sleep wake
   esp_reset_reason_t reset_reason = esp_reset_reason();
-  bool isColdBoot = (reset_reason == ESP_RST_POWERON || 
-                     reset_reason == ESP_RST_BROWNOUT ||
-                     reset_reason == ESP_RST_SW || 
-                     reset_reason == ESP_RST_EXT);
+  bool isColdBoot =
+      (reset_reason == ESP_RST_POWERON || reset_reason == ESP_RST_BROWNOUT ||
+       reset_reason == ESP_RST_SW || reset_reason == ESP_RST_EXT);
 
   if (!isColdBoot && rtcConfig.isValid) {
-    //deep sleep wake - use rtc memory (fast, no flash access)
-    coinCount = rtcConfig.coinCount;
-    d4Count = rtcConfig.d4Count;
-    d6Count = rtcConfig.d6Count;
-    d8Count = rtcConfig.d8Count;
-    d10Count = rtcConfig.d10Count;
-    d12Count = rtcConfig.d12Count;
-    d20Count = rtcConfig.d20Count;
+    // deep sleep wake - use rtc memory (fast, no flash access)
+    diceCount[0] = rtcConfig.coinCount;
+    diceCount[1] = rtcConfig.d4Count;
+    diceCount[2] = rtcConfig.d6Count;
+    diceCount[3] = rtcConfig.d8Count;
+    diceCount[4] = rtcConfig.d10Count;
+    diceCount[5] = rtcConfig.d12Count;
+    diceCount[6] = rtcConfig.d20Count;
     brightness = rtcConfig.brightness;
     timeToClearDisplay = rtcConfig.timeToClearDisplay;
     stagger = rtcConfig.stagger;
     frameDelay = rtcConfig.frameDelay;
     historyCount = rtcConfig.historyCount;
 
-    //copy roll history from rtc
+    // copy roll history from rtc
     for (int i = 0; i < 6; i++) {
       for (int j = 0; j < 8; j++) {
         rollHistory[i][j] = rtcConfig.rollHistory[i][j];
       }
     }
 
-    return; //skip flash access entirely
+    return; // skip flash access entirely
   }
 
-  //cold boot or invalid rtc - load from flash
-  preferences.begin("diceConfig", true); //true = read-only mode
+  // cold boot or invalid rtc - load from flash
+  preferences.begin("diceConfig", true); // true = read-only mode
 
-  //load all values from flash
-  coinCount = preferences.getInt("coinCount", COIN_COUNT_DEFAULT);
-  d4Count = preferences.getInt("d4Count", D4_COUNT_DEFAULT);
-  d6Count = preferences.getInt("d6Count", D6_COUNT_DEFAULT);
-  d8Count = preferences.getInt("d8Count", D8_COUNT_DEFAULT);
-  d10Count = preferences.getInt("d10Count", D10_COUNT_DEFAULT);
-  d12Count = preferences.getInt("d12Count", D12_COUNT_DEFAULT);
-  d20Count = preferences.getInt("d20Count", D20_COUNT_DEFAULT);
+  // load all values from flash
+  diceCount[0] = preferences.getInt("coinCount", COIN_COUNT_DEFAULT);
+  diceCount[1] = preferences.getInt("d4Count", D4_COUNT_DEFAULT);
+  diceCount[2] = preferences.getInt("d6Count", D6_COUNT_DEFAULT);
+  diceCount[3] = preferences.getInt("d8Count", D8_COUNT_DEFAULT);
+  diceCount[4] = preferences.getInt("d10Count", D10_COUNT_DEFAULT);
+  diceCount[5] = preferences.getInt("d12Count", D12_COUNT_DEFAULT);
+  diceCount[6] = preferences.getInt("d20Count", D20_COUNT_DEFAULT);
   brightness = preferences.getInt("brightness", BRIGHTNESS_DEFAULT);
-  timeToClearDisplay = preferences.getInt("clearTime", TIME_TO_CLEAR_DISPLAY_DEFAULT);
+  timeToClearDisplay =
+      preferences.getInt("clearTime", TIME_TO_CLEAR_DISPLAY_DEFAULT);
   stagger = preferences.getInt("stagger", STAGGER_DEFAULT);
   frameDelay = preferences.getInt("frameDelay", FRAME_DELAY_DEFAULT);
   historyCount = preferences.getInt("historyCount", 0);
 
-  //load roll history
+  // load roll history
   size_t historySize = preferences.getBytesLength("rollHistory");
   if (historySize == sizeof(rollHistory)) {
     preferences.getBytes("rollHistory", rollHistory, sizeof(rollHistory));
   } else {
-    //initialize empty history if no valid data found
+    // initialize empty history if no valid data found
     for (int i = 0; i < 6; i++) {
       for (int j = 0; j < 8; j++) {
         rollHistory[i][j] = -1;
@@ -611,36 +575,33 @@ void loadConfiguration() {
 
   preferences.end();
 
-  //single validation check - if any value is out of range, reset all to defaults
-  if (coinCount < 0 || coinCount > 8 ||
-      d4Count < 0 || d4Count > 8 ||
-      d6Count < 0 || d6Count > 8 ||
-      d8Count < 0 || d8Count > 8 ||
-      d10Count < 0 || d10Count > 8 ||
-      d12Count < 0 || d12Count > 8 ||
-      d20Count < 0 || d20Count > 8 ||
-      getTotalDiceCount() > 8 ||
-      brightness < 64 || brightness > 255 ||
-      timeToClearDisplay < 1000 || timeToClearDisplay > 10000 ||
-      stagger < 0 || stagger > 20 ||
-      frameDelay < 0 || frameDelay > 100 ||
-      historyCount < 0 || historyCount > 6) {
-    
-    //reset all configuration to defaults using defined constants
-    coinCount = COIN_COUNT_DEFAULT;
-    d4Count = D4_COUNT_DEFAULT;
-    d6Count = D6_COUNT_DEFAULT;
-    d8Count = D8_COUNT_DEFAULT;
-    d10Count = D10_COUNT_DEFAULT;
-    d12Count = D12_COUNT_DEFAULT;
-    d20Count = D20_COUNT_DEFAULT;
+  // single validation check - if any value is out of range, reset all to
+  // defaults
+  if (diceCount[0] < 0 || diceCount[0] > 8 || diceCount[1] < 0 ||
+      diceCount[1] > 8 || diceCount[2] < 0 || diceCount[2] > 8 ||
+      diceCount[3] < 0 || diceCount[3] > 8 || diceCount[4] < 0 ||
+      diceCount[4] > 8 || diceCount[5] < 0 || diceCount[5] > 8 ||
+      diceCount[6] < 0 || diceCount[6] > 8 || getTotalDiceCount() > 8 ||
+      brightness < 64 || brightness > 255 || timeToClearDisplay < 1000 ||
+      timeToClearDisplay > 10000 || stagger < 0 || stagger > 20 ||
+      frameDelay < 0 || frameDelay > 100 || historyCount < 0 ||
+      historyCount > 6) {
+
+    // reset all configuration to defaults using defined constants
+    diceCount[0] = COIN_COUNT_DEFAULT;
+    diceCount[1] = D4_COUNT_DEFAULT;
+    diceCount[2] = D6_COUNT_DEFAULT;
+    diceCount[3] = D8_COUNT_DEFAULT;
+    diceCount[4] = D10_COUNT_DEFAULT;
+    diceCount[5] = D12_COUNT_DEFAULT;
+    diceCount[6] = D20_COUNT_DEFAULT;
     brightness = BRIGHTNESS_DEFAULT;
     timeToClearDisplay = TIME_TO_CLEAR_DISPLAY_DEFAULT;
     stagger = STAGGER_DEFAULT;
     frameDelay = FRAME_DELAY_DEFAULT;
     historyCount = 0;
-    
-    //clear roll history
+
+    // clear roll history
     for (int i = 0; i < 6; i++) {
       for (int j = 0; j < 8; j++) {
         rollHistory[i][j] = -1;
@@ -648,54 +609,26 @@ void loadConfiguration() {
     }
   }
 
-  //after loading from flash, update rtc memory
-  rtcConfig.coinCount = coinCount;
-  rtcConfig.d4Count = d4Count;
-  rtcConfig.d6Count = d6Count;
-  rtcConfig.d8Count = d8Count;
-  rtcConfig.d10Count = d10Count;
-  rtcConfig.d12Count = d12Count;
-  rtcConfig.d20Count = d20Count;
+  // after loading from flash, update rtc memory
+  rtcConfig.coinCount = diceCount[0];
+  rtcConfig.d4Count = diceCount[1];
+  rtcConfig.d6Count = diceCount[2];
+  rtcConfig.d8Count = diceCount[3];
+  rtcConfig.d10Count = diceCount[4];
+  rtcConfig.d12Count = diceCount[5];
+  rtcConfig.d20Count = diceCount[6];
   rtcConfig.brightness = brightness;
   rtcConfig.timeToClearDisplay = timeToClearDisplay;
   rtcConfig.stagger = stagger;
   rtcConfig.frameDelay = frameDelay;
   rtcConfig.historyCount = historyCount;
 
-  //copy roll history to rtc
+  // copy roll history to rtc
   for (int i = 0; i < 6; i++) {
     for (int j = 0; j < 8; j++) {
       rtcConfig.rollHistory[i][j] = rollHistory[i][j];
     }
   }
 
-  rtcConfig.isValid = true; //mark rtc data as valid
-}
-
-// custom direct I2C clearing function to avoid flash from display.clearDisplay
-void nonGlitchyDisplayClear() {
-  for (uint8_t page = 0; page < 8; page++) {
-    // set page and column address
-    Wire.beginTransmission(0x3C);
-    Wire.write(0x00);        // command mode
-    Wire.write(0xB0 + page); // set page address
-    Wire.write(0x02);        // lower column address (start at 2)
-    Wire.write(0x10);        // higher column address
-    Wire.endTransmission();
-
-    // write the 132 columns in small chunks to avoid I2C buffer overflow
-    // that was producing small glitch while clearing
-    for (int startCol = 0; startCol < 132; startCol += 16) {
-      Wire.beginTransmission(0x3C);
-      Wire.write(0x40); // data mode
-
-      int endCol = min(startCol + 16, 132);
-      for (int col = startCol; col < endCol; col++) {
-        Wire.write(0x00); // clear pixel(write black to it)
-      }
-
-      Wire.endTransmission();
-    }
-  }
-  delay(10);
+  rtcConfig.isValid = true; // mark rtc data as valid
 }

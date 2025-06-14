@@ -25,8 +25,6 @@ extern RTC_DATA_ATTR RtcConfig rtcConfig;
 
 //function prototypes
 void openMenu();
-void nonGlitchyDisplayClear();
-extern void setDisplayBrightness(uint8_t brightness);
 //history variables
 extern int rollHistory[6][8];
 extern int historyCount;

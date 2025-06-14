@@ -161,7 +161,6 @@ void rollDice() {
   }
 
   // store results in roll history (already ordered by dice size)
-  // add to roll history
   if (historyCount < 6) {
     historyCount++;
   }
@@ -232,7 +231,7 @@ void rollDice() {
 
             if (currentDieFrame < animationFrames) {
               // coin is still animating - 28 frames per cycle
-              bitmapIndex = (currentDieFrame) % 28;
+              bitmapIndex = (currentDieFrame *2) % 28;
             } else {
               // coin showing result frames
               int resultFrame = currentDieFrame - animationFrames;

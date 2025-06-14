@@ -1,6 +1,7 @@
 #include "config.h"
 #include "menu.h"
 #include "rollDice.h"
+#include "utils.h"
 #include <Adafruit_GFX.h>
 #include <Adafruit_SH1106.h>
 #include <Wire.h>
@@ -53,6 +54,8 @@ void setup() {
 
   // check wake up reason
   esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
+  //set saved brightness
+  setDisplayBrightness(getBrightness());
 
   // checks what caused the esp32 to wake up
   if (wakeup_reason == ESP_SLEEP_WAKEUP_GPIO) {
