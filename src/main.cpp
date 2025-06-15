@@ -2,6 +2,7 @@
 #include "menu.h"
 #include "rollDice.h"
 #include "utils.h"
+#include "welcome_bitmap.h"
 #include <Adafruit_GFX.h>
 #include <Adafruit_SH1106.h>
 #include <Wire.h>
@@ -54,7 +55,7 @@ void setup() {
 
   // check wake up reason
   esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
-  //set saved brightness
+  // set saved brightness
   setDisplayBrightness(getBrightness());
 
   // checks what caused the esp32 to wake up
@@ -77,6 +78,7 @@ void setup() {
   } else {
 
     showWelcomeMessage();
+    delay(1500);
     // turns it off completely, controller included
     digitalWrite(DISPLAY_POWER_PIN, LOW);
     // and holds the pin low via RTC
@@ -89,17 +91,21 @@ void setup() {
 void loop() {}
 
 void showWelcomeMessage() {
-  // clears display and shows initial instructions
-  display.clearDisplay();
-  display.setTextColor(WHITE);
-  display.setCursor(0, 0);
-  display.println("press to roll dice");
-  display.setCursor(0, 20);
-  display.println("D20:XX,D20:XX,D20:XX,D20:XX,D20:XX,D20:XX,D20:XX,D20:XX");
-  display.setCursor(0, 40);
-  display.display();
-}
 
+  int frameDelay = 200;
+  int frame = 0;
+  unsigned long startTime = millis();
+
+  while (millis() - startTime < 4000) { // animate for 3 seconds
+    display.clearDisplay();
+    display.drawBitmap(0, 4, greyhound_allArray[frame], 128, 40, WHITE);
+    display.drawBitmap(0, 44, welcome_image_dice_allArray[0], 128, 16, WHITE);
+    display.display();
+    delay(frameDelay);
+
+    frame = (frame + 1) % 3; // cycles frames
+  }
+}
 void goToDeepSleep() {
 
   // enters deep sleep mode - usb disconnects here
