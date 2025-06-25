@@ -4,6 +4,7 @@
 #define SDA_PIN 5
 #define SCL_PIN 6
 #define BUTTON_PIN 4
+#define ACCE_INT_PIN 2
 #define DISPLAY_POWER_PIN 3
 
 //button timing
@@ -26,7 +27,7 @@
 #define BRIGHTNESS_DEFAULT 128
 #define TIME_TO_CLEAR_DISPLAY_DEFAULT 3500
 #define STAGGER_DEFAULT 2
-#define FRAME_DELAY_DEFAULT 0
+#define ACCELEROMETER_DEFAULT 1
 #define COIN_COUNT_DEFAULT 0
 #define D4_COUNT_DEFAULT 0
 #define D6_COUNT_DEFAULT 1
@@ -34,7 +35,3 @@
 #define D10_COUNT_DEFAULT 0
 #define D12_COUNT_DEFAULT 0
 #define D20_COUNT_DEFAULT 0
-
-
-
-

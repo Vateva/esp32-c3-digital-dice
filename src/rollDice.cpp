@@ -87,7 +87,7 @@ const unsigned char *const *getDiceBitmapArray(int diceType, bool use64x64) {
 void rollDice() {
   // gets current configuration settings
   int staggerTime = getStagger();
-  int frameDelay = getframeDelay();
+  int frameDelay = 10;
 
   // gets individual dice counts from menu settings
   int coinCount = getCoinCount();
