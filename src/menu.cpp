@@ -28,7 +28,7 @@ const char *diceMenuItems[DICE_MENU_ITEMS] = {"Coin", "D4",  "D6",  "D8",
                                               "D10",  "D12", "D20", "Back"};
 // config menu option labels
 const char *configMenuItems[CONFIG_MENU_ITEMS] = {
-    "Brightness", "Time to clear", "Stagger time", "Frame delay(ms)", "Back"};
+    "Brightness", "Time to clear", "Stagger time", "Accelerometer", "Back"};
 
 // dice count array
 int diceCount[7] = {COIN_COUNT_DEFAULT, D4_COUNT_DEFAULT,  D6_COUNT_DEFAULT,
@@ -39,7 +39,7 @@ int diceCount[7] = {COIN_COUNT_DEFAULT, D4_COUNT_DEFAULT,  D6_COUNT_DEFAULT,
 int brightness = BRIGHTNESS_DEFAULT;
 int timeToClearDisplay = TIME_TO_CLEAR_DISPLAY_DEFAULT; // milliseconds
 int stagger = STAGGER_DEFAULT;
-int frameDelay = FRAME_DELAY_DEFAULT;
+int accelerometer = ACCELEROMETER_DEFAULT;
 
 // timing variables for button handling
 unsigned long buttonPressStart = 0;
@@ -194,7 +194,7 @@ void drawMenu() {
       int col = (i / 4); // 0 for left column, 1 for right column
       int row = i % 4;   // row within column (0-3)
 
-      display.setCursor(2+(col * 64),
+      display.setCursor(2 + (col * 64),
                         17 + (row * 13)); // 64 pixels apart for columns
 
       // draws selection indicator for current item
@@ -271,8 +271,12 @@ void drawMenu() {
         case 2: // animation frames
           display.print(stagger);
           break;
-        case 3: // animation fps
-          display.print(frameDelay);
+        case 3: // accelerometer
+          if (accelerometer == 1) {
+            display.print("On");
+          } else if (accelerometer == 0){
+            display.print("Off");
+          }
           break;
         }
       }
@@ -420,8 +424,8 @@ void executeMenuAction() {
       changedConfig = true; // flag to save to flash
       drawMenu();
       break;
-    case 3: // frame delay(ms)
-      frameDelay = (frameDelay == 75) ? 0 : frameDelay + 5;
+    case 3: // accelerometer 1/0 on/off
+      accelerometer = (accelerometer == 1) ? 0 : 1;
       changedConfig = true; // flag to save to flash
       drawMenu();
       break;
@@ -449,7 +453,7 @@ int getTimeToClearDisplay() { return timeToClearDisplay; }
 
 int getStagger() { return stagger; }
 
-int getframeDelay() { return frameDelay; }
+int getAccelerometer() { return accelerometer; }
 
 // new getter functions for individual dice counts
 int getCoinCount() { return diceCount[0]; }
@@ -477,7 +481,7 @@ void saveConfiguration() {
   preferences.putInt("brightness", brightness);
   preferences.putInt("clearTime", timeToClearDisplay);
   preferences.putInt("stagger", stagger);
-  preferences.putInt("frameDelay", frameDelay);
+  preferences.putInt("accelerometer", accelerometer);
 
   // save roll history
   preferences.putBytes("rollHistory", rollHistory, sizeof(rollHistory));
@@ -494,7 +498,7 @@ void saveConfiguration() {
   rtcConfig.brightness = brightness;
   rtcConfig.timeToClearDisplay = timeToClearDisplay;
   rtcConfig.stagger = stagger;
-  rtcConfig.frameDelay = frameDelay;
+  rtcConfig.accelerometer = accelerometer;
   rtcConfig.historyCount = historyCount;
 
   // copy roll history to rtc
@@ -529,7 +533,7 @@ void loadConfiguration() {
     brightness = rtcConfig.brightness;
     timeToClearDisplay = rtcConfig.timeToClearDisplay;
     stagger = rtcConfig.stagger;
-    frameDelay = rtcConfig.frameDelay;
+    accelerometer = rtcConfig.accelerometer;
     historyCount = rtcConfig.historyCount;
 
     // copy roll history from rtc
@@ -557,7 +561,7 @@ void loadConfiguration() {
   timeToClearDisplay =
       preferences.getInt("clearTime", TIME_TO_CLEAR_DISPLAY_DEFAULT);
   stagger = preferences.getInt("stagger", STAGGER_DEFAULT);
-  frameDelay = preferences.getInt("frameDelay", FRAME_DELAY_DEFAULT);
+  accelerometer = preferences.getInt("accelerometer", ACCELEROMETER_DEFAULT);
   historyCount = preferences.getInt("historyCount", 0);
 
   // load roll history
@@ -584,7 +588,7 @@ void loadConfiguration() {
       diceCount[6] < 0 || diceCount[6] > 8 || getTotalDiceCount() > 8 ||
       brightness < 64 || brightness > 255 || timeToClearDisplay < 1000 ||
       timeToClearDisplay > 10000 || stagger < 0 || stagger > 20 ||
-      frameDelay < 0 || frameDelay > 100 || historyCount < 0 ||
+      accelerometer < 0 || accelerometer > 1 || historyCount < 0 ||
       historyCount > 6) {
 
     // reset all configuration to defaults using defined constants
@@ -598,7 +602,7 @@ void loadConfiguration() {
     brightness = BRIGHTNESS_DEFAULT;
     timeToClearDisplay = TIME_TO_CLEAR_DISPLAY_DEFAULT;
     stagger = STAGGER_DEFAULT;
-    frameDelay = FRAME_DELAY_DEFAULT;
+    accelerometer = ACCELEROMETER_DEFAULT;
     historyCount = 0;
 
     // clear roll history
@@ -620,7 +624,7 @@ void loadConfiguration() {
   rtcConfig.brightness = brightness;
   rtcConfig.timeToClearDisplay = timeToClearDisplay;
   rtcConfig.stagger = stagger;
-  rtcConfig.frameDelay = frameDelay;
+  rtcConfig.accelerometer = accelerometer;
   rtcConfig.historyCount = historyCount;
 
   // copy roll history to rtc

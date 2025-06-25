@@ -16,7 +16,7 @@ typedef struct {
     int brightness;
     int timeToClearDisplay;
     int stagger;
-    int frameDelay;
+    int accelerometer;
     int rollHistory[6][8];
     int historyCount;
 } RtcConfig;
@@ -38,9 +38,9 @@ int getNumberOfDice();
 int getBrightness();
 int getTimeToClearDisplay();
 int getStagger();
-int getframeDelay(); //note: matches existing function name in menu.cpp
+int getAccelerometer(); 
 
-//new getter functions for individual dice counts
+//getter functions for individual dice counts
 int getCoinCount();
 int getD4Count();
 int getD6Count();
