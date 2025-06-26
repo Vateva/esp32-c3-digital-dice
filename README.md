@@ -289,16 +289,7 @@ Here are a couple of videos showcasing the dice rolling and the menu:
 
 ### Dice Roll 
 
-<div align="center">
-    <video width="450" controls>
-        <source src="https://github.com/user-attachments/assets/2823d9ca-534b-4626-b369-a73eaf9733b9" type="video/mp4">
-    </video>
-</div>
-
+[dice roll](https://github.com/user-attachments/assets/2823d9ca-534b-4626-b369-a73eaf9733b9)
 ### Menu
 
-<div align="center">
-    <video width="450" controls>
-        <source src="https://github.com/user-attachments/assets/94b1bece-dcf2-499f-b2bd-8fa810c06be8" type="video/mp4">
-    </video>
-</div>
+[menu](https://github.com/user-attachments/assets/94b1bece-dcf2-499f-b2bd-8fa810c06be8)
