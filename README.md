@@ -15,20 +15,25 @@ Main objective is to learn more about git/github and microcontrollers/c.
 
 ## Test Wiring
 The idea was to print a cubical casing and power the whole set upt with a button cell, probably CR2477 as we will probably have vertical space to spare, but first we will build a working prototype powered by the usb-c port.
-- [x] Soldered pins to ESP32 C3 Super Mini
+- Soldered pins to ESP32 C3 Super Mini
+<div align="center">
       <img src="https://github.com/user-attachments/assets/8eced715-a916-418f-835d-47435327fa81" width="450" />
-- [x] Common ground wire
+</div>
+- Common ground wire
+<div align="center">
       <img src="https://github.com/user-attachments/assets/dc3a87b4-1a35-4714-a49f-55c347cf56cc" width="450" />
-
-- [x] Button wiring
-
-<img src="https://github.com/user-attachments/assets/99b9bcc6-91e5-4356-a87c-d4289aa7ec71" width="450" />
-- [x] Prototype for testing
-<img src="https://github.com/user-attachments/assets/b091df99-b107-424f-84ea-bf5e541a1e10" width="450" />
-
+</div>
+ Button wiring
+<div align="center">
+      <img src="https://github.com/user-attachments/assets/99b9bcc6-91e5-4356-a87c-d4289aa7ec71" width="450" />
+- Prototype for testing
+<div align="center">
+      <img src="https://github.com/user-attachments/assets/b091df99-b107-424f-84ea-bf5e541a1e10" width="450" />
+</div>
 Now we use testhardware.cpp to test the setup.
-<img src="https://github.com/user-attachments/assets/959974c1-7d6c-4c69-ba8f-38003629b8c3" width="450" />
-
+<div align="center">
+      <img src="https://github.com/user-attachments/assets/959974c1-7d6c-4c69-ba8f-38003629b8c3" width="450" />
+</div>
 Everything works!
 ## Final product
 
@@ -48,11 +53,15 @@ Final productlooks like this with everything wired but not placed inside the cas
 
 I glued the TP4057 1A on top of the pouch and glued it to the bottom of the casing. I also glued the ESP32-C3 to the side of the casing and added a small hidrogel film on top of the screen before placing it in the casing for extra protection. This is the final product with everything inside the casing:
 
-<img src="https://github.com/user-attachments/assets/80930081-2158-40fb-9822-0a78e254b7d7" width="450" />
-
-
-<img src="https://github.com/user-attachments/assets/f2e6b35b-14b9-4382-af63-a8d1ebb66420" width="450" />
-<img src="https://github.com/user-attachments/assets/f372c949-f1df-43bc-8603-d781ff4e1637" width="450" />
+<div align="center">
+      <img src="https://github.com/user-attachments/assets/80930081-2158-40fb-9822-0a78e254b7d7" width="450" />
+</div>
+<div align="center">
+      <img src="https://github.com/user-attachments/assets/f2e6b35b-14b9-4382-af63-a8d1ebb66420" width="450" />
+</div>
+<div align="center">
+      <img src="https://github.com/user-attachments/assets/f372c949-f1df-43bc-8603-d781ff4e1637" width="450" />
+</div>
 
 And a couple of videos showcasing the dice rolling and the menu.
 
