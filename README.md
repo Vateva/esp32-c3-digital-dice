@@ -31,10 +31,12 @@ Now we use testhardware.cpp to test the setup.
 
 Everything works!
 ## Final product
+
 I ended up adding a few QoL upgrades to the initial idea/prototype:
--A small switch to turn power off completely between sessions.
--A rechargable 500mAh LiPo pouch, recargable though usb-c with a small TP4057 1A.
--A LSM6DS3 accelerometer to add shake to roll capabilities.
+
+- A small switch to turn power off completely between sessions.
+- A rechargable 500mAh LiPo pouch, recargable though usb-c with a small TP4057 1A.
+- A LSM6DS3 accelerometer to add shake to roll capabilities.
 
 For the casing i decided to learn very basic Blender and designed and printed it myself with an Ender 3 Pro i got from a friend. The STL file will be in the repository in case someone wants to replicate the whole project.
 
