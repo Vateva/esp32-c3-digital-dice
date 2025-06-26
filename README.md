@@ -16,18 +16,18 @@ Main objective is to learn more about git/github and microcontrollers/c.
 ## Test Wiring
 The idea was to print a cubical casing and power the whole set upt with a button cell, probably CR2477 as we will probably have vertical space to spare, but first we will build a working prototype powered by the usb-c port.
 - [x] Soldered pins to ESP32 C3 Super Mini
-<img src="https://github.com/user-attachments/assets/8eced715-a916-418f-835d-47435327fa81" width="250" />
+      <img src="https://github.com/user-attachments/assets/8eced715-a916-418f-835d-47435327fa81" width="450" />
 - [x] Common ground wire
-      ![commongroundupont](https://github.com/user-attachments/assets/dc3a87b4-1a35-4714-a49f-55c347cf56cc)
+      <img src="https://github.com/user-attachments/assets/dc3a87b4-1a35-4714-a49f-55c347cf56cc" width="450" />
 
 - [x] Button wiring
 
-![button wiring](https://github.com/user-attachments/assets/99b9bcc6-91e5-4356-a87c-d4289aa7ec71)
+<img src="https://github.com/user-attachments/assets/99b9bcc6-91e5-4356-a87c-d4289aa7ec71" width="450" />
 - [x] Prototype for testing
-![nobatterynocasing test wiring](https://github.com/user-attachments/assets/b091df99-b107-424f-84ea-bf5e541a1e10)
+<img src="https://github.com/user-attachments/assets/b091df99-b107-424f-84ea-bf5e541a1e10" width="450" />
 
 Now we use testhardware.cpp to test the setup.
-![testhardware](https://github.com/user-attachments/assets/959974c1-7d6c-4c69-ba8f-38003629b8c3)
+<img src="https://github.com/user-attachments/assets/959974c1-7d6c-4c69-ba8f-38003629b8c3" width="450" />
 
 Everything works!
 ## Final product
@@ -43,16 +43,16 @@ For the casing i decided to learn very basic Blender and designed and printed it
 Final productlooks like this with everything wired but not placed inside the casing:
 
 
-![final setup innards1](https://github.com/user-attachments/assets/5a5fe65d-ffd2-43f7-b5d6-8ed447fa7e7d)
-![final setup innards2](https://github.com/user-attachments/assets/62b013cf-bb54-45e4-b1a7-99bc85e18d8d)
+<img src="https://github.com/user-attachments/assets/5a5fe65d-ffd2-43f7-b5d6-8ed447fa7e7d" width="450" />
+<img src="https://github.com/user-attachments/assets/62b013cf-bb54-45e4-b1a7-99bc85e18d8d" width="450" />
 
 I glued the TP4057 1A on top of the pouch and glued it to the bottom of the casing. I also glued the ESP32-C3 to the side of the casing and added a small hidrogel film on top of the screen before placing it in the casing for extra protection. This is the final product with everything inside the casing:
 
-![final encased](https://github.com/user-attachments/assets/80930081-2158-40fb-9822-0a78e254b7d7)
+<img src="https://github.com/user-attachments/assets/80930081-2158-40fb-9822-0a78e254b7d7" width="450" />
 
 
-![final1](https://github.com/user-attachments/assets/f2e6b35b-14b9-4382-af63-a8d1ebb66420)
-![final2](https://github.com/user-attachments/assets/f372c949-f1df-43bc-8603-d781ff4e1637)
+<img src="https://github.com/user-attachments/assets/f2e6b35b-14b9-4382-af63-a8d1ebb66420" width="450" />
+<img src="https://github.com/user-attachments/assets/f372c949-f1df-43bc-8603-d781ff4e1637" width="450" />
 
 And a couple of videos showcasing the dice rolling and the menu.
 
