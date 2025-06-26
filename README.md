@@ -30,7 +30,7 @@ Now we use testhardware.cpp to test the setup.
 ![testhardware](https://github.com/user-attachments/assets/959974c1-7d6c-4c69-ba8f-38003629b8c3)
 
 Everything works!
-
+## Final product
 I ended up adding a few QoL upgrades to the initial idea/prototype:
 -A small switch to turn power off completely between sessions.
 -A rechargable 500mAh LiPo pouch, recargable though usb-c with a small TP4057 1A.
