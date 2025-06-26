@@ -16,7 +16,7 @@ Main objective is to learn more about git/github and microcontrollers/c.
 ## Test Wiring
 The idea was to print a cubical casing and power the whole set upt with a button cell, probably CR2477 as we will probably have vertical space to spare, but first we will build a working prototype powered by the usb-c port.
 - [x] Soldered pins to ESP32 C3 Super Mini
-![esp32c3superminipins](https://github.com/user-attachments/assets/8eced715-a916-418f-835d-47435327fa81)
+<img src="https://github.com/user-attachments/assets/8eced715-a916-418f-835d-47435327fa81" width="250" />
 - [x] Common ground wire
       ![commongroundupont](https://github.com/user-attachments/assets/dc3a87b4-1a35-4714-a49f-55c347cf56cc)
 
